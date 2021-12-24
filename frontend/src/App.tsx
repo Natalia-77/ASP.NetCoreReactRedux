@@ -11,7 +11,7 @@ const App: React.FC = () => {
       <Routes>
         <Route path="/" element={<DefaultLayout />}>
           <Route index element={< HomePage />} />         
-          <Route path="products" element={<ListProductPage />} />
+          <Route path="prod" element={<ListProductPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

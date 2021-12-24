@@ -1,65 +1,60 @@
-import { useEffect, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import classNames from "classnames";
 import { useNavigate } from "react-router";
 import { useActions } from "../../hooks/useActions";
+import { ISearchProduct } from "./types";
 import { useTypedSelector } from "../../hooks/useTypedSelector";
 
 const ListProductPage: React.FC = () => {
-    
-    const navigator = useNavigate();
 
+    const navigator = useNavigate();
+    const { ProductFetchActions } = useActions();
+    const [name, setName] = useState<string>("");
     const [query, setQuery] = useState<string>(window.location.search);
 
     async function getProducts(search: ISearchProduct) {
-      
+       
         try {
             await ProductFetchActions(search);
-           
+          
         } catch (ex) {
            
         }
     }
-
-    useEffect(() => {
-        const params = new URLSearchParams(query);
-        const name = params?.get("name") ?? "";
-        const desc = params?.get("description") ?? "";
-        setName(name);
-        const search: ISearchProduct = {
-            page: params?.get("page") ?? 1,
-            name: name,
-            description: desc
-        };
-        getProducts(search);
-    }, [query]);
-
+    const { product, last_page, current_page, total } = useTypedSelector((store) => store.prod);
     var pages: Array<number> = new Array(last_page);
     for (let i = 1; i <= last_page; i++) {
         pages.push(i);
     }
 
-    const onHandleSubmit = (e: any) => {
-        e.preventDefault();
+    useEffect(() => {
+        const params = new URLSearchParams(query);
+        const name = params?.get("name") ?? "";       
+        setName(name);
+        const search: ISearchProduct = {
+            page: params?.get("page") ?? 1,
+            name: name,
+            
+        };
+        getProducts(search);
+    }, [query]);
 
-        const name = (document.getElementById("searchName") as HTMLInputElement).value;
-        const desc = (document.getElementById("searchDesc") as HTMLInputElement).value;
-
-        if (name || name.length > 0) {
-            setQuery("?name=" + name);
-            navigator("?name=" + name);
-        }      
-
-        if (desc || desc.length > 0) {
-            setQuery("?description=" + desc);
-            navigator("?description=" + desc);
-        }
-    };
+   
+    const searchProd = (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        const form = event.target as HTMLFormElement;
+        const input = form.querySelector('#searchName') as HTMLInputElement;
+        const name = input.value;
+        setQuery("?name=" + name);
+        navigator("?name=" + name);
+    }
 
     return (
-        <>           
+        <>
             <h1 className="text-center mt-3">Товари</h1>
-            <form className="form-control-sm" onSubmit={onHandleSubmit}>
+            <form className="form-control-sm" onSubmit={event => searchProd(event)}>
+
                 <input
                     id="searchName"
                     type="search"
@@ -69,16 +64,6 @@ const ListProductPage: React.FC = () => {
                 <button className="btn btn-outline-primary btn-sm ms-2"
                     type="submit">
                     По назві
-                </button>
-                <input
-                    className="float-end"
-                    id="searchDesc"
-                    type="search"
-                    placeholder="Search"
-                    aria-label="Search"
-                />
-                <button className="btn btn-outline-primary btn-sm me-2 float-end " type="submit">
-                    По опису
                 </button>
 
             </form>
@@ -113,19 +98,17 @@ const ListProductPage: React.FC = () => {
                         return (
                             <li
                                 className={classNames("page-item", {
-                                    active: current_page == page,
+                                    active: current_page === page,
                                 })}
                                 key={key}
                             >
-                                <Link
-                                    className="page-link"
+                                <Link   className="page-link"
                                     to={url}
                                     onClick={() => {
                                         setQuery(url);
                                     }}
                                 >
-                                    {page}
-                                </Link>
+                                    {page}</Link>
                             </li>
                         );
                     })}

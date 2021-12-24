@@ -5,9 +5,10 @@ using Products.Models;
 
 namespace Products.Controllers
 {
-
+    
     [Route("[controller]")]
     [ApiController]
+
     public class ProdController : ControllerBase
     {
         private AppEFContext _context { get; set; }
@@ -16,7 +17,7 @@ namespace Products.Controllers
             _context = context;
         }
 
-        [HttpGet]
+        [HttpGet]       
         public IActionResult GetData([FromQuery] SearchParamsModel model)
         {
             var prod = _context.Productss.Select(x => new ProductViewModel
@@ -25,18 +26,21 @@ namespace Products.Controllers
                 Name = x.Name,
                 Description = x.Description
             }).AsQueryable();
-
+            int count = 2;
             string search = model.Name != null ? model.Name : "";
             var res = _context.Productss.Where(x => x.Name.Contains(search));
 
             return Ok(new
             {
+                data = new
+                {
 
-                data = res.Select(x => x).ToList(),
-                search = model.Name,
-                current_page = 1,
-                last_page = 2,
-                total = prod.Count(),
+                    data = res.Select(x => x).ToList(),
+                    search = model.Name,
+                    current_page = model.Page,
+                    last_page = (Math.Ceiling((decimal)prod.Count() / count)),
+                    total = prod.Count(),
+                }
 
             });
         }
